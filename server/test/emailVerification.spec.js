@@ -180,21 +180,6 @@ describe('User SignUp', () => {
           done();
         });
     });
-    it('Should send an error to the user if user has already been verified.', (done) => {
-      chai.request(app)
-        .post('/api/users/reverify')
-        .send({
-          user: {
-            email: users[0].email
-          }
-        })
-        .end((err, res) => {
-          if (err) return done(err);
-          expect(res.status).to.equal(409);
-          expect(res.body.message).to.equal('This email has already been verified.');
-          done();
-        });
-    });
     it('It should send a reset password link to the user\'s email.', (done) => {
       chai.request(app)
         .post('/api/users/reset-password')
@@ -227,26 +212,6 @@ describe('User SignUp', () => {
           if (err) return done(err);
           done();
         });
-    });
-    it('It should send a message to the user if password link has already been sent.', (done) => {
-      const passwordTimeCheck = () => {
-        chai.request(app)
-          .post('/api/users/reset-password/')
-          .set('Content-Type', 'application/json')
-          .send({
-            user: {
-              email: users[0].email,
-            }
-          })
-          .end((err, res) => {
-            expect(res.status).to.equal(409);
-            expect(res.body.message).to
-              .equal(`A reset password link has been sent to ${users[0].email} already.`);
-            if (err) return done(err);
-          });
-      };
-      setTimeout(passwordTimeCheck, 1500);
-      done();
     });
     it('It should update a user password', (done) => {
       chai.request(app)

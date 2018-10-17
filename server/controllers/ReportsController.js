@@ -175,6 +175,63 @@ class ReportsController {
   }
 
   /**
+   * @description - Get All UsersReports For a Specific Article
+   * @static
+   *
+   * @param {object} req - HTTP Request
+   * @param {object} res - HTTP Response
+   * @param {object} next call next funtion/handler
+   *
+   * @memberOf ReportsController
+   *
+   * @returns {object} response JSON Object
+   */
+  static getUsersReports(req, res, next) {
+    const { page, limit, order } = req.query;
+    const offset = parseInt((page - 1), 10) * limit;
+
+    return Report
+      .findAndCountAll({
+        where: {
+          userId: req.decoded.userId,
+          status: 'Open'
+        },
+        order: [
+          ['createdAt', order]
+        ],
+        offset,
+        limit,
+        include: [{
+          model: ReportCategory,
+          attributes: {
+            exclude: ['createdAt', 'updatedAt', 'deletedAt', 'description']
+          }
+        }, {
+          model: User,
+          attributes: ['username', 'email'],
+        }
+        ],
+      })
+      .then((reports) => {
+        const { count } = reports;
+        const pageCount = Math.ceil(count / limit);
+        return res.status(200).json({
+          paginationMeta: {
+            pageCount,
+            totalCount: count,
+            outputCount: reports.rows.length,
+            pageSize: limit,
+            currentPage: page,
+          },
+          reports: {
+            ...reports.rows,
+          }
+        });
+      })
+      .catch(next);
+  }
+
+  /**
    * @description - Update a Specific Report
    * @static
    *
